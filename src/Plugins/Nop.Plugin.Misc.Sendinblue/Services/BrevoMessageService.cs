@@ -12,24 +12,24 @@ using Nop.Services.Messages;
 using Nop.Services.Orders;
 using Nop.Services.Stores;
 
-namespace Nop.Plugin.Misc.Sendinblue.Services
+namespace Nop.Plugin.Misc.Brevo.Services
 {
     /// <summary>
     /// Represents overridden workflow message service
     /// </summary>
-    public class SendinblueMessageService : WorkflowMessageService
+    public class BrevoMessageService : WorkflowMessageService
     {
         #region Fields
 
         protected readonly IGenericAttributeService _genericAttributeService;
         protected readonly ISettingService _settingService;
-        protected readonly SendinblueManager _sendinblueEmailManager;
+        protected readonly BrevoManager _brevoEmailManager;
 
         #endregion
 
         #region Ctor
 
-        public SendinblueMessageService(CommonSettings commonSettings,
+        public BrevoMessageService(CommonSettings commonSettings,
             EmailAccountSettings emailAccountSettings,
             IAddressService addressService,
             IAffiliateService affiliateService,
@@ -49,7 +49,7 @@ namespace Nop.Plugin.Misc.Sendinblue.Services
             IQueuedEmailService queuedEmailService,
             ITokenizer tokenizer,
             MessagesSettings messagesSettings,
-            SendinblueManager sendinblueEmailManager)
+            BrevoManager brevoEmailManager)
             : base(commonSettings,
                 emailAccountSettings,
                 addressService,
@@ -71,7 +71,7 @@ namespace Nop.Plugin.Misc.Sendinblue.Services
         {
             _genericAttributeService = genericAttributeService;
             _settingService = settingService;
-            _sendinblueEmailManager = sendinblueEmailManager;
+            _brevoEmailManager = brevoEmailManager;
         }
 
         #endregion
@@ -88,31 +88,31 @@ namespace Nop.Plugin.Misc.Sendinblue.Services
         {
             //get plugin settings
             var storeId = (int?)tokens.FirstOrDefault(token => token.Key == "Store.Id")?.Value;
-            var sendinblueSettings = await _settingService.LoadSettingAsync<SendinblueSettings>(storeId ?? 0);
+            var brevoSettings = await _settingService.LoadSettingAsync<SendinblueSettings>(storeId ?? 0);
 
             //ensure SMS notifications enabled
-            if (!sendinblueSettings.UseSmsNotifications)
+            if (!brevoSettings.UseSmsNotifications)
                 return;
 
             //whether to send SMS by the passed message template
             var sendSmsForThisMessageTemplate = await _genericAttributeService
-                .GetAttributeAsync<bool>(messageTemplate, SendinblueDefaults.UseSmsAttribute);
+                .GetAttributeAsync<bool>(messageTemplate, BrevoDefaults.UseSmsAttribute);
             if (!sendSmsForThisMessageTemplate)
                 return;
 
             //get text with replaced tokens
-            var text = await _genericAttributeService.GetAttributeAsync<string>(messageTemplate, SendinblueDefaults.SmsTextAttribute);
+            var text = await _genericAttributeService.GetAttributeAsync<string>(messageTemplate, BrevoDefaults.SmsTextAttribute);
             if (!string.IsNullOrEmpty(text))
                 text = _tokenizer.Replace(text, tokens, false);
 
             //get phone number send to
             var phoneNumberTo = string.Empty;
-            var phoneType = await _genericAttributeService.GetAttributeAsync<int>(messageTemplate, SendinblueDefaults.PhoneTypeAttribute);
+            var phoneType = await _genericAttributeService.GetAttributeAsync<int>(messageTemplate, BrevoDefaults.PhoneTypeAttribute);
             switch (phoneType)
             {
                 case 0:
                     //merchant phone
-                    phoneNumberTo = sendinblueSettings.StoreOwnerPhoneNumber;
+                    phoneNumberTo = brevoSettings.StoreOwnerPhoneNumber;
                     break;
                 case 1:
                     //customer phone
@@ -125,7 +125,7 @@ namespace Nop.Plugin.Misc.Sendinblue.Services
             }
 
             //try to send SMS
-            await _sendinblueEmailManager.SendSMSAsync(phoneNumberTo, sendinblueSettings.SmsSenderName, text);
+            await _brevoEmailManager.SendSMSAsync(phoneNumberTo, brevoSettings.SmsSenderName, text);
         }
 
         /// <summary>
@@ -155,23 +155,23 @@ namespace Nop.Plugin.Misc.Sendinblue.Services
         {
             //get plugin settings
             var storeId = (int?)tokens.FirstOrDefault(token => token.Key == "Store.Id")?.Value;
-            var sendinblueSettings = await _settingService.LoadSettingAsync<SendinblueSettings>(storeId ?? 0);
+            var brevoSettings = await _settingService.LoadSettingAsync<SendinblueSettings>(storeId ?? 0);
 
             //ensure email notifications enabled
-            if (!sendinblueSettings.UseSmtp)
+            if (!brevoSettings.UseSmtp)
                 return null;
 
             //whether to send email by the passed message template
-            var templateId = await _genericAttributeService.GetAttributeAsync<int?>(messageTemplate, SendinblueDefaults.TemplateIdAttribute);
+            var templateId = await _genericAttributeService.GetAttributeAsync<int?>(messageTemplate, BrevoDefaults.TemplateIdAttribute);
             var sendEmailForThisMessageTemplate = templateId.HasValue;
             if (!sendEmailForThisMessageTemplate)
                 return null;
 
             //get the specified email account from settings
-            emailAccount = await _emailAccountService.GetEmailAccountByIdAsync(sendinblueSettings.EmailAccountId) ?? emailAccount;
+            emailAccount = await _emailAccountService.GetEmailAccountByIdAsync(brevoSettings.EmailAccountId) ?? emailAccount;
 
             //get an email from the template
-            var email = await _sendinblueEmailManager.GetQueuedEmailFromTemplateAsync(templateId.Value)
+            var email = await _brevoEmailManager.GetQueuedEmailFromTemplateAsync(templateId.Value)
                 ?? throw new NopException($"There is no template with id {templateId}");
 
             //replace body and subject tokens

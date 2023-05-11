@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
+using Nop.Plugin.Misc.Brevo;
 using Nop.Web.Framework.Mvc.Routing;
 
-namespace Nop.Plugin.Misc.Sendinblue.Infrastructure
+namespace Nop.Plugin.Misc.Brevo.Infrastructure
 {
     /// <summary>
     /// Represents plugin route provider
@@ -15,11 +16,11 @@ namespace Nop.Plugin.Misc.Sendinblue.Infrastructure
         /// <param name="endpointRouteBuilder">Route builder</param>
         public void RegisterRoutes(IEndpointRouteBuilder endpointRouteBuilder)
         {
-            endpointRouteBuilder.MapControllerRoute(SendinblueDefaults.ImportContactsRoute, "Plugins/Sendinblue/ImportContacts",
-                new { controller = "Sendinblue", action = "ImportContacts" });
+            endpointRouteBuilder.MapControllerRoute(BrevoDefaults.ImportContactsRoute, "Plugins/Brevo/ImportContacts",
+                new { controller = "Brevo", action = "ImportContacts" });
 
-            endpointRouteBuilder.MapControllerRoute(SendinblueDefaults.UnsubscribeContactRoute, "Plugins/Sendinblue/UnsubscribeWebHook",
-                new { controller = "Sendinblue", action = "UnsubscribeWebHook" });
+            endpointRouteBuilder.MapControllerRoute(BrevoDefaults.UnsubscribeContactRoute, "Plugins/Brevo/UnsubscribeWebHook",
+                new { controller = "Brevo", action = "UnsubscribeWebHook" });
         }
 
         /// <summary>

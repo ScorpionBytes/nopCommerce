@@ -1,6 +1,6 @@
 ﻿using Nop.Core.Configuration;
 
-namespace Nop.Plugin.Misc.Sendinblue
+namespace Nop.Plugin.Misc.Brevo
 {
     /// <summary>
     /// Represents a plugin settings

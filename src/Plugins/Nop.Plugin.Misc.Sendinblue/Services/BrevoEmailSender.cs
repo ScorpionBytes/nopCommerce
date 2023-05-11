@@ -4,30 +4,30 @@ using Nop.Core.Infrastructure;
 using Nop.Services.Media;
 using Nop.Services.Messages;
 
-namespace Nop.Plugin.Misc.Sendinblue.Services
+namespace Nop.Plugin.Misc.Brevo.Services
 {
     /// <summary>
     /// Represents overridden email sender
     /// </summary>
-    public class SendinblueEmailSender : EmailSender
+    public class BrevoEmailSender : EmailSender
     {
         #region Fields
 
         protected readonly IStoreContext _storeContext;
-        protected readonly SendinblueSettings _sendinblueSettings;
+        protected readonly SendinblueSettings _brevoSettings;
 
         #endregion
 
         #region Ctor
 
-        public SendinblueEmailSender(IDownloadService downloadService,
+        public BrevoEmailSender(IDownloadService downloadService,
             INopFileProvider fileProvider,
             ISmtpBuilder smtpBuilder,
             IStoreContext storeContext,
-            SendinblueSettings sendinblueSettings) : base(downloadService, fileProvider, smtpBuilder)
+            SendinblueSettings brevoSettings) : base(downloadService, fileProvider, smtpBuilder)
         {
             _storeContext = storeContext;
-            _sendinblueSettings = sendinblueSettings;
+            _brevoSettings = brevoSettings;
         }
 
         #endregion
@@ -61,11 +61,11 @@ namespace Nop.Plugin.Misc.Sendinblue.Services
             int attachedDownloadId = 0, IDictionary<string, string> headers = null)
         {
             //add store identifier in email headers
-            if (emailAccount.Id == _sendinblueSettings.EmailAccountId)
+            if (emailAccount.Id == _brevoSettings.EmailAccountId)
             {
                 var store = await _storeContext.GetCurrentStoreAsync();
                 headers ??= new Dictionary<string, string>();
-                headers.Add(SendinblueDefaults.EmailCustomHeader, store.Id.ToString());
+                headers.Add(BrevoDefaults.EmailCustomHeader, store.Id.ToString());
             }
 
             await base.SendEmailAsync(emailAccount, subject, body, fromAddress, fromName, toAddress, toName, replyTo, replyToName, bcc, cc, attachmentFilePath, attachmentFileName, attachedDownloadId, headers);
